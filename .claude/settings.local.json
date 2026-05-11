@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2026-05-11&queryParameters.endDate=2026-05-15\" -o /Users/michaelshaw/WhatsOnParly/samples/diary.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/list.json?queryParameters.startDate=2026-05-11&queryParameters.endDate=2026-05-15&queryParameters.house=Commons\" -o /Users/michaelshaw/WhatsOnParly/samples/list_commons.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/list.json?queryParameters.startDate=2026-05-11&queryParameters.endDate=2026-05-15&queryParameters.house=Lords\" -o /Users/michaelshaw/WhatsOnParly/samples/list_lords.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/nonsitting.json?queryParameters.startDate=2026-05-11&queryParameters.endDate=2026-05-15\" -o /Users/michaelshaw/WhatsOnParly/samples/nonsitting.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/types/list.json\" -o /Users/michaelshaw/WhatsOnParly/samples/types.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/categories/list.json\" -o /Users/michaelshaw/WhatsOnParly/samples/categories.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2026-04-28&queryParameters.endDate=2026-04-29\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/list.json?queryParameters.startDate=2026-04-28&queryParameters.endDate=2026-04-29&queryParameters.house=Commons\" -o /Users/michaelshaw/WhatsOnParly/samples/list_commons_apr28.json)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2026-03-17&queryParameters.endDate=2026-03-17\")",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2025-11-03&queryParameters.endDate=2025-11-07\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2025-02-03&queryParameters.endDate=2025-02-07\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2024-11-11&queryParameters.endDate=2024-11-15\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/27054.json\")",
+      "Bash(curl -sv \"https://whatson-api.parliament.uk/calendar/events/22283.json\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/22283/attendees.json\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/22283/activities.json\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/swagger/docs/v1\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/speakers.json?queryParameters.startDate=2024-11-11&queryParameters.endDate=2024-11-15\")",
+      "Bash(curl -s \"https://whatson-api.parliament.uk/calendar/events/speakers.json?queryParameters.startDate=2025-01-13&queryParameters.endDate=2025-01-17\")",
+      "Bash(pdftotext /Users/michaelshaw/WhatsOnParly/Example.pdf -)",
+      "Bash(gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -sOutputFile=- /Users/michaelshaw/WhatsOnParly/Example.pdf)",
+      "Bash(node *)",
+      "Bash(python3 -m http.server 8765)",
+      "Bash(echo \"Server PID: $!\")",
+      "Bash(curl *)",
+      "Bash(open *)",
+      "Bash(python3 *)"
+    ]
+  }
+}

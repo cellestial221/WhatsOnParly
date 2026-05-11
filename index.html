@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parliament What's On Generator</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231a3a5c'/%3E%3Crect x='4' y='5' width='24' height='3' fill='%23c9a227'/%3E%3Crect x='4' y='5' width='3' height='18' fill='%23c9a227'/%3E%3Crect x='25' y='5' width='3' height='18' fill='%23c9a227'/%3E%3Crect x='12' y='5' width='3' height='22' fill='%23c9a227'/%3E%3Crect x='17' y='5' width='3' height='22' fill='%23c9a227'/%3E%3Crect x='4' y='15' width='24' height='3' fill='%23c9a227'/%3E%3Cpolygon points='12,27 15,27 13.5,30' fill='%23c9a227'/%3E%3Cpolygon points='17,27 20,27 18.5,30' fill='%23c9a227'/%3E%3C/svg%3E">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #eef1f5;
+      color: #333;
+      padding: 32px 20px 60px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ---- Header ---- */
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a3a5c;
+      padding-bottom: 12px;
+      border-bottom: 3px solid #1a3a5c;
+    }
+
+    /* ---- Controls card ---- */
+    .controls {
+      background: #fff;
+      border-radius: 6px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      margin-bottom: 18px;
+    }
+
+    .date-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    input[type="date"] {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    input[type="date"]:focus {
+      outline: none;
+      border-color: #1a3a5c;
+      box-shadow: 0 0 0 3px rgba(26,58,92,0.12);
+    }
+
+    /* ---- Buttons ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.12s, opacity 0.12s, box-shadow 0.12s;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .btn-primary {
+      background: #1a3a5c;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #22497a;
+      box-shadow: 0 2px 6px rgba(26,58,92,0.3);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #1a3a5c;
+      border: 1.5px solid #1a3a5c;
+      font-size: 13px;
+      padding: 8px 14px;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #edf2f7;
+    }
+
+    /* ---- Status area ---- */
+    #status {
+      min-height: 20px;
+      margin-bottom: 14px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .spinner {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid #ccc;
+      border-top-color: #1a3a5c;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #fff3f2;
+      border: 1px solid #f5c6c2;
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #c0392b;
+    }
+
+    /* ---- Copy bar ---- */
+    .copy-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .copied-toast {
+      font-size: 13px;
+      font-weight: 600;
+      color: #217a45;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .copied-toast.visible {
+      opacity: 1;
+    }
+
+    /* ---- Output ---- */
+    #output {
+      overflow-x: auto;
+    }
+
+    /* ---- Footer ---- */
+    .page-footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid #ddd;
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ---- Mobile ---- */
+    @media (max-width: 600px) {
+      body { padding: 16px 12px 40px; }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .date-group {
+        flex-direction: column;
+      }
+
+      .btn { width: 100%; justify-content: center; }
+
+      .copy-bar { flex-direction: column; }
+      .copy-bar .btn { width: 100%; justify-content: center; }
+
+      #output table { min-width: 500px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="page-header">
+      <h1>Parliament What's On Generator</h1>
+    </header>
+
+    <div class="controls">
+      <div class="date-group">
+        <div class="field">
+          <label for="startDate">Week starting</label>
+          <input type="date" id="startDate">
+        </div>
+        <div class="field">
+          <label for="endDate">Week ending</label>
+          <input type="date" id="endDate">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="generateBtn">Generate</button>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="copy-bar" id="copyBar" hidden>
+      <button class="btn btn-primary" id="copyAll">Copy both tables</button>
+      <button class="btn btn-secondary" id="copyCommons">Commons only</button>
+      <button class="btn btn-secondary" id="copyLords">Lords only</button>
+      <span class="copied-toast" id="copiedToast">&#10003; Copied!</span>
+    </div>
+
+    <div id="output"></div>
+
+    <footer class="page-footer">
+      Data sourced from the <a href="https://whatson-api.parliament.uk" style="color:#999;">UK Parliament What's On Calendar API</a>.
+      Not affiliated with UK Parliament.
+    </footer>
+
+  </div>
+
+  <script type="module">
+    import { fetchWeekData, getNextWeekRange, parseEvents } from './api.js';
+    import { renderTables, renderCommonsTable, renderLordsTable } from './render.js';
+
+    // ---- DOM refs ----
+    const startInput     = document.getElementById('startDate');
+    const endInput       = document.getElementById('endDate');
+    const generateBtn    = document.getElementById('generateBtn');
+    const statusEl       = document.getElementById('status');
+    const copyBar        = document.getElementById('copyBar');
+    const copyAllBtn     = document.getElementById('copyAll');
+    const copyCommonsBtn = document.getElementById('copyCommons');
+    const copyLordsBtn   = document.getElementById('copyLords');
+    const copiedToast    = document.getElementById('copiedToast');
+    const outputEl       = document.getElementById('output');
+
+    // ---- State ----
+    let currentParsed = null;
+    let toastTimer    = null;
+
+    // ---- Set default date range ----
+    const { startDate, endDate } = getNextWeekRange();
+    startInput.value = startDate;
+    endInput.value   = endDate;
+
+    // ---- Event listeners ----
+    generateBtn.addEventListener('click', generate);
+    startInput.addEventListener('change', generate);
+    endInput.addEventListener('change', generate);
+
+    copyAllBtn.addEventListener('click',    () => currentParsed && copy(renderTables(currentParsed)));
+    copyCommonsBtn.addEventListener('click', () => currentParsed && copy(renderCommonsTable(currentParsed)));
+    copyLordsBtn.addEventListener('click',   () => currentParsed && copy(renderLordsTable(currentParsed)));
+
+    // ---- Generate ----
+    async function generate() {
+      const start = startInput.value;
+      const end   = endInput.value;
+      if (!start || !end) return;
+
+      if (start > end) {
+        showError('"Week ending" must be on or after "Week starting".');
+        return;
+      }
+
+      showLoading();
+      outputEl.innerHTML = '';
+      copyBar.hidden = true;
+      currentParsed  = null;
+
+      try {
+        const raw     = await fetchWeekData(start, end);
+        currentParsed = parseEvents(raw);
+        outputEl.innerHTML = renderTables(currentParsed);
+        clearStatus();
+        copyBar.hidden = false;
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    // ---- Status helpers ----
+    function showLoading() {
+      generateBtn.disabled = true;
+      statusEl.innerHTML =
+        '<div class="loading"><div class="spinner"></div>Fetching from Parliament API…</div>';
+    }
+
+    function clearStatus() {
+      generateBtn.disabled = false;
+      statusEl.innerHTML = '';
+    }
+
+    function showError(msg) {
+      generateBtn.disabled = false;
+      statusEl.innerHTML = `<div class="error-msg"><span>&#9888;</span><span>${msg}</span></div>`;
+    }
+
+    // ---- Clipboard ----
+    // Copies HTML so it pastes as formatted rich text in Gmail.
+    // Tries the modern ClipboardItem API first (preserves HTML exactly);
+    // falls back to selecting rendered DOM nodes + execCommand if unavailable.
+    async function copy(html) {
+      let ok = false;
+
+      if (window.ClipboardItem) {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }) }),
+          ]);
+          ok = true;
+        } catch { /* fall through to DOM fallback */ }
+      }
+
+      if (!ok) {
+        try {
+          // Insert the tables into an off-screen element, select, and copy.
+          const tmp = document.createElement('div');
+          tmp.style.cssText = 'position:fixed;left:-9999px;top:0;pointer-events:none;';
+          tmp.innerHTML = html;
+          document.body.appendChild(tmp);
+
+          const range = document.createRange();
+          range.selectNodeContents(tmp);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          document.execCommand('copy');
+          sel.removeAllRanges();
+          document.body.removeChild(tmp);
+          ok = true;
+        } catch { /* both methods failed */ }
+      }
+
+      if (ok) flashToast();
+    }
+
+    function flashToast() {
+      clearTimeout(toastTimer);
+      copiedToast.classList.add('visible');
+      toastTimer = setTimeout(() => copiedToast.classList.remove('visible'), 1800);
+    }
+
+    // ---- Kick off on load ----
+    generate();
+  </script>
+</body>
+</html>
