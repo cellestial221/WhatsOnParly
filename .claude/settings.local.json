@@ -29,7 +29,9 @@
       "Bash(echo \"Server PID: $!\")",
       "Bash(curl *)",
       "Bash(open *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(echo \"HTTP $\\(curl -o /dev/null -s -w \"%{http_code}\" \"https://whatson-api.parliament.uk/calendar/events/diary.json?queryParameters.startDate=2026-04-27&queryParameters.endDate=2026-05-01\"\\) — $\\(wc -c < samples/diary_apr27.json\\) bytes\")",
+      "Bash(echo \"HTTP status: $\\(curl -o /dev/null -s -w \"%{http_code}\" \"https://committees-api.parliament.uk/api/Events/Activities?CommitteeId=127&StartDateFrom=2026-04-27&StartDateTo=2026-05-01&IncludeActivityAttendees=true\"\\)\")"
     ]
   }
 }

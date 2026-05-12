@@ -1,4 +1,5 @@
 const API_BASE = 'https://whatson-api.parliament.uk/calendar/events';
+const COMMITTEE_API_BASE = 'https://committees-api.parliament.uk';
 
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -99,6 +100,7 @@ function parseEvent(event) {
 
   return {
     id: event.Id,
+    committeeId: event.Committee ? event.Committee.Id : null,
     time: t ? `From ${t}` : null,
     type: event.Category || event.Type,
     description: buildDescription(event),
@@ -118,6 +120,78 @@ function parseEvent(event) {
     isPrivateMeeting: event.Category === 'Private Meeting',
     isCancelled: event.CancelledDate !== null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Committee API — structured witness data
+// ---------------------------------------------------------------------------
+
+// Parse Committee API activities array into the same { time, name, role } shape
+// used by renderWitnesses(). Skips private activities and unconfirmed (empty) panels.
+function extractCommitteeWitnesses(activities) {
+  const witnesses = [];
+  for (const act of activities) {
+    if (act.isPrivate || act.activityType !== 'Oral evidence') continue;
+    if (!act.attendees || act.attendees.length === 0) continue;
+
+    const hhmm = act.startDate.slice(11, 16); // "2026-04-27T15:30:00" → "15:30"
+    const formatted = format24hTime(hhmm);
+    const timeLabel = formatted ? `From ${formatted}` : null;
+
+    const sorted = [...act.attendees].sort((a, b) => a.displayOrder - b.displayOrder);
+    for (const attendee of sorted) {
+      const org = attendee.organisations[0];
+      const role = org ? `${org.role} at ${org.name}` : null;
+      witnesses.push({ time: timeLabel, name: attendee.name, role });
+    }
+  }
+  return witnesses;
+}
+
+// Fetch Committee API activities for one WhatsOn event ID.
+// Retries once on network/HTTP error before giving up.
+async function fetchEventActivities(eventId) {
+  const url = `${COMMITTEE_API_BASE}/api/Events/${eventId}/Activities?IncludeActivityAttendees=true`;
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 500));
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Committee API ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+// Enrich oral evidence events in parsedEvents with structured witness data from the
+// Committee API. Falls back to the existing (usually empty) WhatsOn witness data on
+// failure. onProgress(done, total) is called after each fetch if provided.
+export async function enrichWithCommitteeWitnesses(parsedEvents, onProgress) {
+  const oralEvents = [];
+  for (const day of [...parsedEvents.commons, ...parsedEvents.lords]) {
+    for (const ev of day.events) {
+      if (ev.type === 'Oral evidence' && ev.committeeId) oralEvents.push(ev);
+    }
+  }
+
+  const total = oralEvents.length;
+  let done = 0;
+
+  for (const ev of oralEvents) {
+    try {
+      const activities = await fetchEventActivities(ev.id);
+      const witnesses = extractCommitteeWitnesses(activities);
+      if (witnesses.length > 0) ev.witnesses = witnesses;
+    } catch {
+      // keep existing witnesses (empty from WhatsOn API)
+    }
+    done++;
+    if (onProgress) onProgress(done, total);
+    if (done < total) await new Promise(r => setTimeout(r, 150));
+  }
 }
 
 // ---------------------------------------------------------------------------

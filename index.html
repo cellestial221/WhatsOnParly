@@ -263,7 +263,7 @@
   </div>
 
   <script type="module">
-    import { fetchWeekData, getNextWeekRange, parseEvents } from './api.js';
+    import { fetchWeekData, getNextWeekRange, parseEvents, enrichWithCommitteeWitnesses } from './api.js';
     import { renderTables, renderCommonsTable, renderLordsTable } from './render.js';
 
     // ---- DOM refs ----
@@ -307,7 +307,7 @@
         return;
       }
 
-      showLoading();
+      showLoading('Fetching from Parliament API…');
       outputEl.innerHTML = '';
       copyBar.hidden = true;
       currentParsed  = null;
@@ -315,6 +315,11 @@
       try {
         const raw     = await fetchWeekData(start, end);
         currentParsed = parseEvents(raw);
+
+        await enrichWithCommitteeWitnesses(currentParsed, (done, total) => {
+          showLoading(`Fetching witness data… ${done} / ${total}`);
+        });
+
         outputEl.innerHTML = renderTables(currentParsed);
         clearStatus();
         copyBar.hidden = false;
@@ -324,10 +329,10 @@
     }
 
     // ---- Status helpers ----
-    function showLoading() {
+    function showLoading(msg) {
       generateBtn.disabled = true;
       statusEl.innerHTML =
-        '<div class="loading"><div class="spinner"></div>Fetching from Parliament API…</div>';
+        `<div class="loading"><div class="spinner"></div>${msg}</div>`;
     }
 
     function clearStatus() {
