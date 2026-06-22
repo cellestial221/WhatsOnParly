@@ -1,5 +1,5 @@
 const API_BASE = 'https://whatson-api.parliament.uk/calendar/events';
-const COMMITTEE_API_BASE = 'https://committees-api.parliament.uk';
+const COMMITTEE_PROXY_BASE = 'https://parliament-witness-proxy.pidmrh30.workers.dev';
 
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -117,9 +117,34 @@ function parseEvent(event) {
     })),
     billName: event.BillName || null,
     notes: event.Notes || null,
-    isPrivateMeeting: event.Category === 'Private Meeting',
+    isPrivateMeeting: event.Category?.toLowerCase() === 'private meeting',
     isCancelled: event.CancelledDate !== null,
   };
+}
+
+// Order each dated block by parliamentary business area. Events within an area
+// retain the diary's chronological/parliamentary ordering.
+const VENUE_ORDER = new Map([
+  ['Main Chamber', 0],
+  ['Westminster Hall', 1],
+  ['General Committee', 2],
+  ['Grand Committee', 2],
+  ['Select & Joint Committees', 3],
+  ['Select & Joint Committee', 3],
+]);
+
+function compareEvents(a, b) {
+  const venueDiff = (VENUE_ORDER.get(a.Type) ?? 4) - (VENUE_ORDER.get(b.Type) ?? 4);
+  if (venueDiff !== 0) return venueDiff;
+
+  const aHasTime = Boolean(a.StartTime);
+  const bHasTime = Boolean(b.StartTime);
+  if (aHasTime !== bHasTime) return aHasTime ? -1 : 1;
+  if (aHasTime) {
+    const timeDiff = a.StartTime.localeCompare(b.StartTime);
+    return timeDiff !== 0 ? timeDiff : b.SortOrder - a.SortOrder;
+  }
+  return a.SortOrder - b.SortOrder;
 }
 
 // ---------------------------------------------------------------------------
@@ -151,7 +176,7 @@ function extractCommitteeWitnesses(activities) {
 // Fetch Committee API activities for one WhatsOn event ID.
 // Retries once on network/HTTP error before giving up.
 async function fetchEventActivities(eventId) {
-  const url = `${COMMITTEE_API_BASE}/api/Events/${eventId}/Activities?IncludeActivityAttendees=true`;
+  const url = `${COMMITTEE_PROXY_BASE}/events/${eventId}/activities`;
   let lastErr;
   for (let attempt = 0; attempt < 2; attempt++) {
     if (attempt > 0) await new Promise(r => setTimeout(r, 500));
@@ -263,21 +288,7 @@ export function parseEvents(diaryData) {
         const events = (house.Events || [])
           .filter(ev => ev.CancelledDate === null)
           .slice()
-          .sort((a, b) => {
-            const aHasTime = a.StartTime !== '';
-            const bHasTime = b.StartTime !== '';
-            // Timed events always precede untimed ones.
-            if (aHasTime !== bHasTime) return aHasTime ? -1 : 1;
-            if (aHasTime) {
-              // Both timed: ascending chronological order.
-              // For same time, higher SortOrder comes first — this puts chamber
-              // events (SortOrder ≥ 1) before same-time committees (SortOrder 0).
-              const diff = a.StartTime.localeCompare(b.StartTime);
-              return diff !== 0 ? diff : b.SortOrder - a.SortOrder;
-            }
-            // Both untimed: preserve the API's parliamentary sequence (SortOrder asc).
-            return a.SortOrder - b.SortOrder;
-          })
+          .sort(compareEvents)
           .map(parseEvent);
 
         target.push({ date: dateStr, events, nonSitting: false });

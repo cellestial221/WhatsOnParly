@@ -80,9 +80,7 @@ function renderWitnesses(witnesses) {
   let html = '';
   for (const { key, group } of panels) {
     const timeStr = stripFrom(key);
-    const label = group.length === 1
-      ? `Witness at ${timeStr}:`
-      : `Witnesses at ${timeStr}:`;
+    const label = timeStr ? `Witnesses at ${timeStr}:` : 'Witnesses:';
 
     html += `<br><br>${label}`;
     for (const w of group) {
@@ -96,6 +94,10 @@ function renderWitnesses(witnesses) {
 
 // Build the HTML content that goes inside a single event <td>.
 function renderEventContent(ev) {
+  if (ev.isPrivateMeeting) {
+    return `${ev.committee} - Private meeting`;
+  }
+
   const lines = [];
   const suppressMembers = SUPPRESS_MEMBER_CATEGORIES.has(ev.type);
 
