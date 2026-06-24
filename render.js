@@ -78,11 +78,11 @@ function renderWitnesses(witnesses) {
   }
 
   let html = '';
-  for (const { key, group } of panels) {
+  for (const [index, { key, group }] of panels.entries()) {
     const timeStr = stripFrom(key);
     const label = timeStr ? `Witnesses at ${timeStr}:` : 'Witnesses:';
 
-    html += `<br><br>${label}`;
+    html += `${index === 0 ? '<br>' : '<br><br>'}${label}`;
     for (const w of group) {
       const text = w.name && w.role ? `${w.name}, ${w.role}` : (w.name || '');
       if (text) html += `<br>${text}`;
@@ -95,7 +95,7 @@ function renderWitnesses(witnesses) {
 // Build the HTML content that goes inside a single event <td>.
 function renderEventContent(ev) {
   if (ev.isPrivateMeeting) {
-    return `${ev.committee} - Private meeting`;
+    return `<b>${ev.committee} - Private meeting</b>`;
   }
 
   const lines = [];
@@ -108,9 +108,9 @@ function renderEventContent(ev) {
   //    Committee events: "Committee Name - Category"
   //    Chamber events:   just "Category"
   if (ev.committee) {
-    lines.push(`${ev.committee} - ${ev.type}`);
+    lines.push(`<b>${ev.committee} - ${ev.type}</b>`);
   } else if (ev.type) {
-    lines.push(ev.type);
+    lines.push(`<b>${ev.type}</b>`);
   }
 
   // 3. Description / inquiry line.
